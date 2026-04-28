@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// 使用者資料表，目前為單一使用者架構（id=1）
+model User {
+  /// 使用者 ID，自動遞增主鍵
+  id             Int             @id @default(autoincrement())
+  /// 使用者 Email，唯一
+  email          String          @unique
+  /// 使用者顯示名稱
+  name           String?
+  /// 建立時間
+  createdAt      DateTime        @default(now())
+  /// 最後更新時間
+  updatedAt      DateTime        @updatedAt
+  /// 關聯的上傳批次記錄
+  uploadSessions UploadSession[]
+  /// 關聯的原始睡眠記錄
+  sleepRecords   SleepRecord[]
+  /// 關聯的每日睡眠彙總
+  sleepDaily     SleepDaily[]
+  /// 關聯的每週睡眠彙總
+  sleepWeekly    SleepWeekly[]
+  /// 關聯的每月睡眠彙總
+  sleepMonthly   SleepMonthly[]
+}
+
+/// 每次上傳 Apple Health ZIP 的批次記錄
+model UploadSession {
+  /// 批次 ID，自動遞增主鍵
+  id           Int           @id @default(autoincrement())
+  /// 對應的使用者 ID（外鍵）
+  userId       Int
+  /// 上傳的原始檔案名稱
+  fileName     String
+  /// 檔案儲存路徑（可為空）
+  filePath     String?
+  /// 本次成功解析並儲存的睡眠記錄總筆數
+  totalRecords Int?
+  /// 處理狀態，可能值：pending / processing / completed / failed
+  status       String        @default("pending")
+  /// 上傳時間
+  createdAt    DateTime      @default(now())
+  /// 最後更新時間
+  updatedAt    DateTime      @updatedAt
+  /// 關聯的使用者
+  user         User          @relation(fields: [userId], references: [id])
+  /// 本次上傳產生的原始睡眠記錄
+  sleepRecords SleepRecord[]
+}
+
+/// 從 Apple Health XML 解析出的原始睡眠記錄，每筆對應一段連續的睡眠區間
+model SleepRecord {
+  /// 記錄 ID，自動遞增主鍵
+  id              Int            @id @default(autoincrement())
+  /// 對應的使用者 ID（外鍵）
+  userId          Int
+  /// 產生此記錄的上傳批次 ID（可為空）
+  uploadSessionId Int?
+  /// 睡眠區間開始時間（含時區）
+  startDate       DateTime
+  /// 睡眠區間結束時間（含時區）
+  endDate         DateTime
+  /// 所屬日期（以 endDate 的日期為準），用於日期索引
+  date            DateTime       @db.Date
+  /// 睡眠階段類型，可能值：InBed / AsleepREM / AsleepCore / AsleepDeep / Awake
+  category        String
+  /// 睡眠階段中文名稱，如「深層睡眠」
+  categoryLabel   String?
+  /// 資料來源裝置名稱，如「Stalic的Apple Watch」
+  sourceName      String?
+  /// 資料來源裝置系統版本
+  sourceVersion   String?
+  /// 此區間持續時間（分鐘）
+  durationMinutes Int
+  /// 記錄建立時間
+  createdAt       DateTime       @default(now())
+  /// 關聯的使用者
+  user            User           @relation(fields: [userId], references: [id])
+  /// 關聯的上傳批次
+  uploadSession   UploadSession? @relation(fields: [uploadSessionId], references: [id])
+
+  @@index([userId, date])
+  @@index([category])
+  @@index([startDate])
+}
+
+/// 每日睡眠彙總統計，由原始記錄聚合計算而來
+model SleepDaily {
+  /// 記錄 ID，自動遞增主鍵
+  id                Int      @id @default(autoincrement())
+  /// 對應的使用者 ID（外鍵）
+  userId            Int
+  /// 統計日期（唯一）
+  date              DateTime @unique @db.Date
+  /// 當日在床上的總時間（分鐘）
+  inBedMinutes      Int?
+  /// 當日 REM 睡眠總時間（分鐘）
+  remSleepMinutes   Int?
+  /// 當日核心睡眠總時間（分鐘）
+  coreSleepMinutes  Int?
+  /// 當日深層睡眠總時間（分鐘）
+  deepSleepMinutes  Int?
+  /// 當日清醒時間（分鐘，在睡眠期間的清醒片段）
+  awakeMinutes      Int?
+  /// 當日有效睡眠總時間 = REM + 核心 + 深層（分鐘）
+  totalSleepMinutes Int?
+  /// 睡眠品質評分 0–100，計算公式：深層35% + 核心30% + REM20% + 總時長15%
+  sleepQualityScore Int?
+  /// 當日睡眠週期數（可為空，預留欄位）
+  totalCycles       Int?
+  /// 建立時間
+  createdAt         DateTime @default(now())
+  /// 最後更新時間
+  updatedAt         DateTime @updatedAt
+  /// 關聯的使用者
+  user              User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, date])
+}
+
+/// 每週睡眠彙總統計，由每日資料平均計算而來
+model SleepWeekly {
+  /// 記錄 ID，自動遞增主鍵
+  id                   Int      @id @default(autoincrement())
+  /// 對應的使用者 ID（外鍵）
+  userId               Int
+  /// 該週起始日期（週一）
+  weekStartDate        DateTime @db.Date
+  /// 該週結束日期（週日）
+  weekEndDate          DateTime @db.Date
+  /// 本週每日平均在床時間（分鐘）
+  avgInBedMinutes      Int?
+  /// 本週每日平均 REM 睡眠時間（分鐘）
+  avgRemSleepMinutes   Int?
+  /// 本週每日平均核心睡眠時間（分鐘）
+  avgCoreSleepMinutes  Int?
+  /// 本週每日平均深層睡眠時間（分鐘）
+  avgDeepSleepMinutes  Int?
+  /// 本週每日平均清醒時間（分鐘）
+  avgAwakeMinutes      Int?
+  /// 本週每日平均有效睡眠時間（分鐘）
+  avgTotalSleepMinutes Int?
+  /// 本週每日平均睡眠品質評分
+  avgSleepQualityScore Int?
+  /// 建立時間
+  createdAt            DateTime @default(now())
+  /// 最後更新時間
+  updatedAt            DateTime @updatedAt
+  /// 關聯的使用者
+  user                 User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, weekStartDate])
+}
+
+/// 每月睡眠彙總統計，由每日資料平均計算而來
+model SleepMonthly {
+  /// 記錄 ID，自動遞增主鍵
+  id                      Int      @id @default(autoincrement())
+  /// 對應的使用者 ID（外鍵）
+  userId                  Int
+  /// 統計年份，如 2024
+  year                    Int
+  /// 統計月份，1–12
+  month                   Int
+  /// 本月每日平均有效睡眠時間（分鐘）
+  avgTotalSleepMinutes    Int?
+  /// 本月深層睡眠平均佔比（%）
+  avgDeepSleepPercentage  Float?
+  /// 本月核心睡眠平均佔比（%）
+  avgCoreSleepPercentage  Float?
+  /// 本月 REM 睡眠平均佔比（%）
+  avgRemSleepPercentage   Float?
+  /// 本月平均睡眠品質評分
+  avgQualityScore         Int?
+  /// 建立時間
+  createdAt               DateTime @default(now())
+  /// 最後更新時間
+  updatedAt               DateTime @updatedAt
+  /// 關聯的使用者
+  user                    User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, year, month])
+}
