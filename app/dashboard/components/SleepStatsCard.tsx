@@ -8,24 +8,27 @@ interface Props {
 }
 
 const TREND = {
-  up: { icon: '↑', color: 'text-green-400' },
+  up: { icon: '↑', color: 'text-emerald-400' },
   down: { icon: '↓', color: 'text-red-400' },
-  neutral: { icon: '→', color: 'text-gray-400' },
+  neutral: { icon: '→', color: 'text-slate-400' },
 };
 
 export function SleepStatsCard({ title, value, subtitle, trend }: Props) {
   const t = trend ? TREND[trend] : null;
   return (
-    <Card className="bg-gray-900 border-gray-700">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-gray-400">{title}</CardTitle>
+    <Card className="bg-[#0c1a2e] border-[#1a3554] rounded-xl">
+      <CardHeader className="pb-1 pt-5 px-5">
+        <CardTitle className="text-xs font-semibold uppercase tracking-widest text-[#64748b]">
+          {title}
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-5 pb-5">
         <div className="flex items-end gap-2">
-          <span className="text-3xl font-bold text-white">{value}</span>
-          {t && <span className={`text-lg font-medium mb-0.5 ${t.color}`}>{t.icon}</span>}
+          <span className="text-3xl font-bold text-white tabular-nums">{value}</span>
+          {t && <span className={`text-base font-medium mb-1 ${t.color}`}>{t.icon}</span>}
         </div>
-        {subtitle && <p className="text-sm text-gray-400 mt-1">{subtitle}</p>}
+        {subtitle && <p className="text-xs text-[#64748b] mt-1">{subtitle}</p>}
+        <div className="mt-3 h-px bg-gradient-to-r from-[#06b6d4]/40 to-transparent" />
       </CardContent>
     </Card>
   );

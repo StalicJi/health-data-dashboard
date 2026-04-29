@@ -7,9 +7,11 @@ import { SleepChart } from '@/app/dashboard/components/SleepChart';
 import { SleepTrendChart } from '@/app/dashboard/components/SleepTrendChart';
 import { SleepCycleBreakdown } from '@/app/dashboard/components/SleepCycleBreakdown';
 import { SleepQualityRadar } from '@/app/dashboard/components/SleepQualityRadar';
+import { SleepWearCalendar } from '@/app/dashboard/components/SleepWearCalendar';
 import { EmptyState } from '@/app/dashboard/components/EmptyState';
 import { formatMinutes } from '@/lib/utils';
-import type { SleepDailyStats, SleepMonthlyStats, SleepYearlyStats } from '@/lib/types';
+import { fillDateRange } from '@/lib/sleepAnalyzer';
+import type { SleepDailyStats, SleepMonthlyStats, SleepYearlyStats, SleepDailyStatsOrGap } from '@/lib/types';
 
 type Range = '7d' | '30d' | '90d';
 
@@ -34,10 +36,7 @@ export default function HomePage() {
   const year = new Date().getFullYear();
   const { startDate, endDate } = getDateRange(range);
 
-  const {
-    data: dailyData,
-    isLoading: loadingDaily,
-  } = useQuery<SleepDailyStats[]>({
+  const { data: dailyData, isLoading: loadingDaily } = useQuery<SleepDailyStats[]>({
     queryKey: ['sleep-daily', startDate, endDate],
     queryFn: async () => {
       try {
@@ -82,13 +81,22 @@ export default function HomePage() {
   const daily = dailyData ?? [];
   const monthly = monthlyData ?? [];
 
-  const avgSleep = Math.round(avgOf(daily.map((d) => d.totalSleepMinutes)));
-  const avgScore = Math.round(avgOf(daily.map((d) => d.sleepQualityScore)));
+  const totalDays = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+  const wornDays = daily.length;
+  const notWornDays = Math.max(0, totalDays - wornDays);
+  const wearRate = totalDays > 0 ? Math.round((wornDays / totalDays) * 100) : 0;
+  const filledDaily: SleepDailyStatsOrGap[] = daily.length > 0 ? fillDateRange(daily, startDate, endDate) : [];
+
+  // 只用實際有睡眠階段資料的天計算平均，排除 InBed-only 或未佩戴的零值天
+  const sleepDays = daily.filter((d) => d.totalSleepMinutes > 0);
+
+  const avgSleep = Math.round(avgOf(sleepDays.map((d) => d.totalSleepMinutes)));
+  const avgScore = Math.round(avgOf(sleepDays.map((d) => d.sleepQualityScore)));
   const avgDeepPct = Math.round(
-    avgOf(daily.map((d) => (d.totalSleepMinutes > 0 ? (d.deepSleepMinutes / d.totalSleepMinutes) * 100 : 0)))
+    avgOf(sleepDays.map((d) => (d.deepSleepMinutes / d.totalSleepMinutes) * 100))
   );
   const avgRemPct = Math.round(
-    avgOf(daily.map((d) => (d.totalSleepMinutes > 0 ? (d.remSleepMinutes / d.totalSleepMinutes) * 100 : 0)))
+    avgOf(sleepDays.map((d) => (d.remSleepMinutes / d.totalSleepMinutes) * 100))
   );
 
   const isLoading = loadingDaily || loadingMonthly || loadingYearly;
@@ -97,7 +105,9 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400">載入中...</div>
+      <div className="flex items-center justify-center h-64">
+        <div className="w-10 h-10 rounded-full animate-spin border-2 border-[#1a3554] border-t-[#06b6d4]" />
+      </div>
     );
   }
 
@@ -106,40 +116,88 @@ export default function HomePage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">睡眠總覽</h2>
+    <div className="max-w-7xl mx-auto space-y-10">
+      <div className="space-y-1">
+        <p className="text-xs font-semibold uppercase tracking-widest text-[#06b6d4]">
+          SLEEP ANALYTICS
+        </p>
+        <h1 className="text-4xl font-bold text-white">睡眠總覽</h1>
+      </div>
+
+      <div className="flex items-center justify-end">
         <Tabs value={range} onValueChange={(v) => setRange(v as Range)}>
-          <TabsList className="bg-gray-800">
-            <TabsTrigger value="7d">7天</TabsTrigger>
-            <TabsTrigger value="30d">30天</TabsTrigger>
-            <TabsTrigger value="90d">90天</TabsTrigger>
+          <TabsList className="bg-[#0c1a2e] border border-[#1a3554] p-1 rounded-full">
+            <TabsTrigger
+              value="7d"
+              className="data-[state=active]:bg-[#06b6d4] data-[state=active]:text-[#060d18] rounded-full px-4 text-[#94a3b8] data-[state=active]:font-semibold"
+            >
+              7天
+            </TabsTrigger>
+            <TabsTrigger
+              value="30d"
+              className="data-[state=active]:bg-[#06b6d4] data-[state=active]:text-[#060d18] rounded-full px-4 text-[#94a3b8] data-[state=active]:font-semibold"
+            >
+              30天
+            </TabsTrigger>
+            <TabsTrigger
+              value="90d"
+              className="data-[state=active]:bg-[#06b6d4] data-[state=active]:text-[#060d18] rounded-full px-4 text-[#94a3b8] data-[state=active]:font-semibold"
+            >
+              90天
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       {daily.length > 0 ? (
         <>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
             <SleepStatsCard title="平均睡眠時間" value={formatMinutes(avgSleep)} />
             <SleepStatsCard title="睡眠評分" value={`${avgScore}`} subtitle="滿分 100" />
             <SleepStatsCard title="深度睡眠" value={`${avgDeepPct}%`} />
             <SleepStatsCard title="REM 睡眠" value={`${avgRemPct}%`} />
+            <SleepStatsCard title="佩戴天數" value={`${wornDays} 天`} subtitle={`共 ${totalDays} 天`} />
+            <SleepStatsCard title="未佩戴天數" value={`${notWornDays} 天`} subtitle={`佩戴率 ${wearRate}%`} />
           </div>
 
-          <section className="space-y-3">
-            <h3 className="text-lg font-semibold text-gray-200">每日睡眠分佈</h3>
+          <section className="space-y-4">
+            <h3
+              className="text-base font-semibold text-white uppercase tracking-wide"
+              style={{ borderLeft: '2px solid #06b6d4', paddingLeft: '0.75rem' }}
+            >
+              每日睡眠分佈
+            </h3>
             <SleepChart data={daily} />
           </section>
 
-          <section className="space-y-3">
-            <h3 className="text-lg font-semibold text-gray-200">睡眠週期堆疊</h3>
+          <section className="space-y-4">
+            <h3
+              className="text-base font-semibold text-white uppercase tracking-wide"
+              style={{ borderLeft: '2px solid #06b6d4', paddingLeft: '0.75rem' }}
+            >
+              睡眠週期堆疊
+            </h3>
             <SleepCycleBreakdown data={daily} />
           </section>
 
-          <section className="space-y-3">
-            <h3 className="text-lg font-semibold text-gray-200">睡眠品質雷達</h3>
+          <section className="space-y-4">
+            <h3
+              className="text-base font-semibold text-white uppercase tracking-wide"
+              style={{ borderLeft: '2px solid #06b6d4', paddingLeft: '0.75rem' }}
+            >
+              睡眠品質雷達
+            </h3>
             <SleepQualityRadar data={daily} />
+          </section>
+
+          <section className="space-y-4">
+            <h3
+              className="text-base font-semibold text-white uppercase tracking-wide"
+              style={{ borderLeft: '2px solid #06b6d4', paddingLeft: '0.75rem' }}
+            >
+              每週佩戴記錄
+            </h3>
+            <SleepWearCalendar data={filledDaily} />
           </section>
         </>
       ) : (
@@ -147,8 +205,13 @@ export default function HomePage() {
       )}
 
       {monthly.length > 0 && (
-        <section className="space-y-3">
-          <h3 className="text-lg font-semibold text-gray-200">{year} 年月度趨勢</h3>
+        <section className="space-y-4">
+          <h3
+            className="text-base font-semibold text-white uppercase tracking-wide"
+            style={{ borderLeft: '2px solid #06b6d4', paddingLeft: '0.75rem' }}
+          >
+            {year} 年月度趨勢
+          </h3>
           <SleepTrendChart data={monthly} />
         </section>
       )}

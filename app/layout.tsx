@@ -29,15 +29,34 @@ export default function RootLayout({
       lang="zh-TW"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-gray-950 text-white">
-        <nav className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">睡眠分析</h1>
-          <div className="flex gap-6 text-sm text-gray-300">
-            <Link href="/" className="hover:text-white transition-colors">總覽</Link>
-            <Link href="/upload" className="hover:text-white transition-colors">上傳資料</Link>
+      <body
+        className="min-h-full flex flex-col"
+        style={{ backgroundColor: "#060d18" }}
+      >
+        <div className="h-0.5 bg-gradient-to-r from-[#0e7490] via-[#06b6d4] to-[#0e7490]" />
+        <nav className="bg-[#060d18] border-b border-[#1a3554] px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-[#06b6d4] text-xl leading-none">◐</span>
+            <span className="text-white font-bold text-lg tracking-wide">
+              睡眠分析
+            </span>
+          </div>
+          <div className="flex gap-8">
+            <Link
+              href="/"
+              className="text-[#94a3b8] hover:text-[#06b6d4] transition-colors text-sm font-medium tracking-wide"
+            >
+              總覽
+            </Link>
+            <Link
+              href="/upload"
+              className="text-[#94a3b8] hover:text-[#06b6d4] transition-colors text-sm font-medium tracking-wide"
+            >
+              紀錄上傳
+            </Link>
           </div>
         </nav>
-        <main className="p-6 flex-1">
+        <main className="flex-1 px-8 py-8">
           <Providers>{children}</Providers>
         </main>
       </body>

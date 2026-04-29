@@ -19,19 +19,14 @@ function avg(nums: number[]) {
 }
 
 export function SleepQualityRadar({ data }: Props) {
-  if (data.length === 0) return null;
+  const sleepDays = data.filter((d) => d.totalSleepMinutes > 0);
+  if (sleepDays.length === 0) return null;
 
-  const avgTotal = avg(data.map((d) => d.totalSleepMinutes));
-  const avgDeepPct = avg(
-    data.map((d) => (d.totalSleepMinutes > 0 ? (d.deepSleepMinutes / d.totalSleepMinutes) * 100 : 0))
-  );
-  const avgRemPct = avg(
-    data.map((d) => (d.totalSleepMinutes > 0 ? (d.remSleepMinutes / d.totalSleepMinutes) * 100 : 0))
-  );
-  const avgCorePct = avg(
-    data.map((d) => (d.totalSleepMinutes > 0 ? (d.coreSleepMinutes / d.totalSleepMinutes) * 100 : 0))
-  );
-  const avgScore = avg(data.map((d) => d.sleepQualityScore));
+  const avgTotal = avg(sleepDays.map((d) => d.totalSleepMinutes));
+  const avgDeepPct = avg(sleepDays.map((d) => (d.deepSleepMinutes / d.totalSleepMinutes) * 100));
+  const avgRemPct = avg(sleepDays.map((d) => (d.remSleepMinutes / d.totalSleepMinutes) * 100));
+  const avgCorePct = avg(sleepDays.map((d) => (d.coreSleepMinutes / d.totalSleepMinutes) * 100));
+  const avgScore = avg(sleepDays.map((d) => d.sleepQualityScore));
 
   const chartData = [
     { subject: '深層睡眠%', value: Math.round(avgDeepPct) },
@@ -42,23 +37,25 @@ export function SleepQualityRadar({ data }: Props) {
   ];
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <RadarChart data={chartData}>
-        <PolarGrid stroke="#374151" />
-        <PolarAngleAxis dataKey="subject" tick={{ fill: '#9ca3af', fontSize: 12 }} />
-        <Radar
-          dataKey="value"
-          stroke="#06b6d4"
-          fill="#06b6d4"
-          fillOpacity={0.3}
-          name="平均"
-        />
-        <Tooltip
-          contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }}
-          labelStyle={{ color: '#e5e7eb' }}
-          formatter={(value: number) => [`${value}`, '']}
-        />
-      </RadarChart>
-    </ResponsiveContainer>
+    <div className="bg-[#0c1a2e] border border-[#1a3554] rounded-xl p-4">
+      <ResponsiveContainer width="100%" height={300}>
+        <RadarChart data={chartData}>
+          <PolarGrid stroke="#1a3554" />
+          <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12 }} />
+          <Radar
+            dataKey="value"
+            stroke="#06b6d4"
+            fill="#06b6d4"
+            fillOpacity={0.3}
+            name="平均"
+          />
+          <Tooltip
+            contentStyle={{ backgroundColor: '#0c1a2e', border: '1px solid #1a3554', borderRadius: 8, color: '#e2e8f0' }}
+            labelStyle={{ color: '#e2e8f0' }}
+            formatter={(value: number) => [`${value}`, '']}
+          />
+        </RadarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

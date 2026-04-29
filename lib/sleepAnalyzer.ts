@@ -1,4 +1,4 @@
-import type { ParsedSleepRecord, SleepDailyStats, SleepWeeklyStats, SleepMonthlyStats } from './types';
+import type { ParsedSleepRecord, SleepDailyStats, SleepWeeklyStats, SleepMonthlyStats, SleepDailyStatsOrGap } from './types';
 
 function avg(nums: number[]): number {
   if (nums.length === 0) return 0;
@@ -87,16 +87,17 @@ export function aggregateWeekly(dailyStats: SleepDailyStats[]): SleepWeeklyStats
   const result: SleepWeeklyStats[] = [];
 
   for (const [weekStart, days] of byWeek) {
-    const total = days.map((d) => d.totalSleepMinutes);
+    const sleepDays = days.filter((d) => d.totalSleepMinutes > 0);
+    if (sleepDays.length === 0) continue;
     result.push({
       weekStart,
       weekEnd: getSundayOfWeek(weekStart),
-      avgTotalSleepMinutes: avg(total),
+      avgTotalSleepMinutes: avg(sleepDays.map((d) => d.totalSleepMinutes)),
       avgDeepSleepPercentage:
-        avgFloat(days.map((d) => d.totalSleepMinutes > 0 ? d.deepSleepMinutes / d.totalSleepMinutes * 100 : 0)),
+        avgFloat(sleepDays.map((d) => d.deepSleepMinutes / d.totalSleepMinutes * 100)),
       avgRemSleepPercentage:
-        avgFloat(days.map((d) => d.totalSleepMinutes > 0 ? d.remSleepMinutes / d.totalSleepMinutes * 100 : 0)),
-      avgQualityScore: avg(days.map((d) => d.sleepQualityScore)),
+        avgFloat(sleepDays.map((d) => d.remSleepMinutes / d.totalSleepMinutes * 100)),
+      avgQualityScore: avg(sleepDays.map((d) => d.sleepQualityScore)),
     });
   }
 
@@ -115,20 +116,56 @@ export function aggregateMonthly(dailyStats: SleepDailyStats[]): SleepMonthlySta
   const result: SleepMonthlyStats[] = [];
 
   for (const [key, days] of byMonth) {
+    const sleepDays = days.filter((d) => d.totalSleepMinutes > 0);
+    if (sleepDays.length === 0) continue;
     const [year, month] = key.split('-').map(Number);
     result.push({
       year,
       month,
-      avgTotalSleepMinutes: avg(days.map((d) => d.totalSleepMinutes)),
+      avgTotalSleepMinutes: avg(sleepDays.map((d) => d.totalSleepMinutes)),
       avgDeepSleepPercentage:
-        avgFloat(days.map((d) => d.totalSleepMinutes > 0 ? d.deepSleepMinutes / d.totalSleepMinutes * 100 : 0)),
+        avgFloat(sleepDays.map((d) => d.deepSleepMinutes / d.totalSleepMinutes * 100)),
       avgCoreSleepPercentage:
-        avgFloat(days.map((d) => d.totalSleepMinutes > 0 ? d.coreSleepMinutes / d.totalSleepMinutes * 100 : 0)),
+        avgFloat(sleepDays.map((d) => d.coreSleepMinutes / d.totalSleepMinutes * 100)),
       avgRemSleepPercentage:
-        avgFloat(days.map((d) => d.totalSleepMinutes > 0 ? d.remSleepMinutes / d.totalSleepMinutes * 100 : 0)),
-      avgQualityScore: avg(days.map((d) => d.sleepQualityScore)),
+        avgFloat(sleepDays.map((d) => d.remSleepMinutes / d.totalSleepMinutes * 100)),
+      avgQualityScore: avg(sleepDays.map((d) => d.sleepQualityScore)),
     });
   }
 
   return result.sort((a, b) => a.year - b.year || a.month - b.month);
+}
+
+export function fillDateRange(
+  data: SleepDailyStats[],
+  startDate: string,
+  endDate: string,
+): SleepDailyStatsOrGap[] {
+  const map = new Map(data.map((d) => [d.date, d]));
+  const result: SleepDailyStatsOrGap[] = [];
+  const current = new Date(startDate + 'T00:00:00');
+  const end = new Date(endDate + 'T00:00:00');
+
+  while (current <= end) {
+    const dateStr = current.toISOString().slice(0, 10);
+    const record = map.get(dateStr);
+    if (record) {
+      result.push({ ...record, hasData: true });
+    } else {
+      result.push({
+        date: dateStr,
+        hasData: false,
+        inBedMinutes: null,
+        remSleepMinutes: null,
+        coreSleepMinutes: null,
+        deepSleepMinutes: null,
+        awakeMinutes: null,
+        totalSleepMinutes: null,
+        sleepQualityScore: null,
+      });
+    }
+    current.setDate(current.getDate() + 1);
+  }
+
+  return result;
 }

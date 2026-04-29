@@ -6,7 +6,7 @@
 [x] 執行 npx prisma generate（已設定 predev/prebuild 自動執行）
 [x] 執行 prisma db push 建立資料表（需先 nvm use 20）
 [x] 建立初始 User 記錄（id=1）
-[ ] 啟動 npm run dev，確認服務正常（記得先 nvm use 20）
+[x] 啟動 npm run dev，服務正常（Node 20 + --hostname 0.0.0.0）
 [ ] 上傳 Apple Health ZIP 測試解析（串流解析已修復，可測試大型檔案）
 [ ] 確認 Dashboard 圖表資料正確
 
@@ -15,7 +15,11 @@
 [ ] Dashboard 年份切換器
 [ ] /api/sleep/stats 整體摘要 API
 [ ] 錯誤邊界（Error Boundary）
-[ ] 空資料狀態引導用戶上傳
+[x] 空資料狀態引導用戶上傳
+[x] UI 重設計：深海軍藍/teal 主題（aegisvopak 風格）
+[x] 未佩戴天數統計：佩戴率卡片 + 每週佩戴記錄圖
+[x] 統計數據修正：排除 totalSleepMinutes=0 的天（InBed-only / 未佩戴）
+[x] 行動裝置開發存取：--hostname 0.0.0.0 + allowedDevOrigins
 
 ## 未來功能
 [ ] 使用者認證（NextAuth.js）— 目前 userId 硬編為 1

@@ -59,3 +59,21 @@ export interface UploadResponse {
   totalRecords?: number;
   error?: string;
 }
+
+// A day entry that has real sleep data
+export type SleepDailyStatsReal = SleepDailyStats & { hasData: true };
+
+// A day entry with no watch data — null values so Recharts line charts show gaps
+export interface SleepDailyGap {
+  date: string;
+  hasData: false;
+  inBedMinutes: null;
+  remSleepMinutes: null;
+  coreSleepMinutes: null;
+  deepSleepMinutes: null;
+  awakeMinutes: null;
+  totalSleepMinutes: null;
+  sleepQualityScore: null;
+}
+
+export type SleepDailyStatsOrGap = SleepDailyStatsReal | SleepDailyGap;

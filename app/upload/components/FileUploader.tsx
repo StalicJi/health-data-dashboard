@@ -52,34 +52,39 @@ export function FileUploader() {
   }
 
   return (
-    <Card className="bg-gray-900 border-gray-700">
+    <Card className="bg-[#0c1a2e] border-[#1a3554]">
       <CardContent className="pt-6 space-y-4">
         <div
           {...getRootProps()}
           className={`border-2 border-dashed rounded-lg p-10 text-center cursor-pointer transition-colors ${
-            isDragActive ? 'border-blue-400 bg-blue-950/20' : 'border-gray-600 hover:border-gray-400'
+            isDragActive
+              ? 'border-[#06b6d4] bg-[#06b6d4]/5'
+              : 'border-[#1a3554] hover:border-[#06b6d4]/50'
           }`}
         >
           <input {...getInputProps()} />
           {file ? (
             <p className="text-white font-medium">{file.name}</p>
           ) : isDragActive ? (
-            <p className="text-blue-400">放開以選擇檔案</p>
+            <p className="text-[#06b6d4]">放開以選擇檔案</p>
           ) : (
-            <p className="text-gray-400">拖曳 ZIP 檔案至此，或點擊選擇</p>
+            <>
+              <p className="text-[#94a3b8]">拖曳 ZIP 檔案至此，或點擊選擇</p>
+              <p className="text-xs text-[#64748b] mt-2">支援 Apple Health 匯出的 .zip 格式</p>
+            </>
           )}
         </div>
 
         <Button
           onClick={handleUpload}
           disabled={!file || state === 'uploading'}
-          className="w-full"
+          className="w-full bg-[#06b6d4] hover:bg-[#0891b2] text-[#060d18] font-semibold"
         >
           {state === 'uploading' ? '上傳中...' : '開始上傳'}
         </Button>
 
         {state === 'success' && (
-          <p className="text-green-400 text-center font-medium">
+          <p className="text-emerald-400 text-center font-medium">
             成功匯入 {totalRecords.toLocaleString()} 筆睡眠記錄
           </p>
         )}
