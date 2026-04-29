@@ -7,7 +7,9 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts';
+import { useTheme } from 'next-themes';
 import type { SleepDailyStats } from '@/lib/types';
+import { getChartColors } from '@/lib/chartTheme';
 
 interface Props {
   data: SleepDailyStats[];
@@ -19,6 +21,9 @@ function avg(nums: number[]) {
 }
 
 export function SleepQualityRadar({ data }: Props) {
+  const { resolvedTheme } = useTheme();
+  const c = getChartColors(resolvedTheme === 'dark');
+
   const sleepDays = data.filter((d) => d.totalSleepMinutes > 0);
   if (sleepDays.length === 0) return null;
 
@@ -37,11 +42,11 @@ export function SleepQualityRadar({ data }: Props) {
   ];
 
   return (
-    <div className="bg-[#0c1a2e] border border-[#1a3554] rounded-xl p-4">
+    <div className="bg-card border border-border rounded-xl p-4">
       <ResponsiveContainer width="100%" height={300}>
         <RadarChart data={chartData}>
-          <PolarGrid stroke="#1a3554" />
-          <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12 }} />
+          <PolarGrid stroke={c.gridStroke} />
+          <PolarAngleAxis dataKey="subject" tick={{ fill: c.tickFill, fontSize: 12 }} />
           <Radar
             dataKey="value"
             stroke="#06b6d4"
@@ -50,8 +55,8 @@ export function SleepQualityRadar({ data }: Props) {
             name="平均"
           />
           <Tooltip
-            contentStyle={{ backgroundColor: '#0c1a2e', border: '1px solid #1a3554', borderRadius: 8, color: '#e2e8f0' }}
-            labelStyle={{ color: '#e2e8f0' }}
+            contentStyle={{ backgroundColor: c.tooltipBg, border: c.tooltipBorder, borderRadius: 8, color: c.tooltipText }}
+            labelStyle={{ color: c.tooltipText }}
             formatter={(value: number) => [`${value}`, '']}
           />
         </RadarChart>

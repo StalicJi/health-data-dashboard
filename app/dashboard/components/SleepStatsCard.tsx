@@ -16,19 +16,19 @@ const TREND = {
 export function SleepStatsCard({ title, value, subtitle, trend }: Props) {
   const t = trend ? TREND[trend] : null;
   return (
-    <Card className="bg-[#0c1a2e] border-[#1a3554] rounded-xl">
+    <Card className="bg-card border-border rounded-xl">
       <CardHeader className="pb-1 pt-5 px-5">
-        <CardTitle className="text-xs font-semibold uppercase tracking-widest text-[#64748b]">
+        <CardTitle className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           {title}
         </CardTitle>
       </CardHeader>
       <CardContent className="px-5 pb-5">
         <div className="flex items-end gap-2">
-          <span className="text-3xl font-bold text-white tabular-nums">{value}</span>
+          <span className="text-3xl font-bold text-foreground tabular-nums">{value}</span>
           {t && <span className={`text-base font-medium mb-1 ${t.color}`}>{t.icon}</span>}
         </div>
-        {subtitle && <p className="text-xs text-[#64748b] mt-1">{subtitle}</p>}
-        <div className="mt-3 h-px bg-gradient-to-r from-[#06b6d4]/40 to-transparent" />
+        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+        <div className="mt-3 h-px bg-gradient-to-r from-primary/40 to-transparent" />
       </CardContent>
     </Card>
   );

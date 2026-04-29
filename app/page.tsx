@@ -106,7 +106,7 @@ export default function HomePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 rounded-full animate-spin border-2 border-[#1a3554] border-t-[#06b6d4]" />
+        <div className="w-10 h-10 rounded-full animate-spin border-2 border-border border-t-primary" />
       </div>
     );
   }
@@ -118,30 +118,30 @@ export default function HomePage() {
   return (
     <div className="max-w-7xl mx-auto space-y-10">
       <div className="space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-widest text-[#06b6d4]">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">
           SLEEP ANALYTICS
         </p>
-        <h1 className="text-4xl font-bold text-white">睡眠總覽</h1>
+        <h1 className="text-4xl font-bold text-foreground">睡眠總覽</h1>
       </div>
 
       <div className="flex items-center justify-end">
         <Tabs value={range} onValueChange={(v) => setRange(v as Range)}>
-          <TabsList className="bg-[#0c1a2e] border border-[#1a3554] p-1 rounded-full">
+          <TabsList className="bg-card border border-border p-1 rounded-full">
             <TabsTrigger
               value="7d"
-              className="data-[state=active]:bg-[#06b6d4] data-[state=active]:text-[#060d18] rounded-full px-4 text-[#94a3b8] data-[state=active]:font-semibold"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 text-muted-foreground data-[state=active]:font-semibold"
             >
               7天
             </TabsTrigger>
             <TabsTrigger
               value="30d"
-              className="data-[state=active]:bg-[#06b6d4] data-[state=active]:text-[#060d18] rounded-full px-4 text-[#94a3b8] data-[state=active]:font-semibold"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 text-muted-foreground data-[state=active]:font-semibold"
             >
               30天
             </TabsTrigger>
             <TabsTrigger
               value="90d"
-              className="data-[state=active]:bg-[#06b6d4] data-[state=active]:text-[#060d18] rounded-full px-4 text-[#94a3b8] data-[state=active]:font-semibold"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 text-muted-foreground data-[state=active]:font-semibold"
             >
               90天
             </TabsTrigger>
@@ -162,8 +162,7 @@ export default function HomePage() {
 
           <section className="space-y-4">
             <h3
-              className="text-base font-semibold text-white uppercase tracking-wide"
-              style={{ borderLeft: '2px solid #06b6d4', paddingLeft: '0.75rem' }}
+              className="text-base font-semibold text-foreground uppercase tracking-wide border-l-2 border-primary pl-3"
             >
               每日睡眠分佈
             </h3>
@@ -172,8 +171,7 @@ export default function HomePage() {
 
           <section className="space-y-4">
             <h3
-              className="text-base font-semibold text-white uppercase tracking-wide"
-              style={{ borderLeft: '2px solid #06b6d4', paddingLeft: '0.75rem' }}
+              className="text-base font-semibold text-foreground uppercase tracking-wide border-l-2 border-primary pl-3"
             >
               睡眠週期堆疊
             </h3>
@@ -182,8 +180,7 @@ export default function HomePage() {
 
           <section className="space-y-4">
             <h3
-              className="text-base font-semibold text-white uppercase tracking-wide"
-              style={{ borderLeft: '2px solid #06b6d4', paddingLeft: '0.75rem' }}
+              className="text-base font-semibold text-foreground uppercase tracking-wide border-l-2 border-primary pl-3"
             >
               睡眠品質雷達
             </h3>
@@ -192,8 +189,7 @@ export default function HomePage() {
 
           <section className="space-y-4">
             <h3
-              className="text-base font-semibold text-white uppercase tracking-wide"
-              style={{ borderLeft: '2px solid #06b6d4', paddingLeft: '0.75rem' }}
+              className="text-base font-semibold text-foreground uppercase tracking-wide border-l-2 border-primary pl-3"
             >
               每週佩戴記錄
             </h3>
@@ -207,8 +203,7 @@ export default function HomePage() {
       {monthly.length > 0 && (
         <section className="space-y-4">
           <h3
-            className="text-base font-semibold text-white uppercase tracking-wide"
-            style={{ borderLeft: '2px solid #06b6d4', paddingLeft: '0.75rem' }}
+            className="text-base font-semibold text-foreground uppercase tracking-wide border-l-2 border-primary pl-3"
           >
             {year} 年月度趨勢
           </h3>

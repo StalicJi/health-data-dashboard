@@ -8,35 +8,40 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { useTheme } from 'next-themes';
 import type { SleepMonthlyStats } from '@/lib/types';
 import { formatMinutes } from '@/lib/utils';
+import { getChartColors } from '@/lib/chartTheme';
 
 interface Props {
   data: SleepMonthlyStats[];
 }
 
 export function SleepTrendChart({ data }: Props) {
+  const { resolvedTheme } = useTheme();
+  const c = getChartColors(resolvedTheme === 'dark');
+
   const chartData = data.map((d) => ({ ...d, monthLabel: `${d.month}月` }));
 
   return (
-    <div className="bg-[#0c1a2e] border border-[#1a3554] rounded-xl p-4">
+    <div className="bg-card border border-border rounded-xl p-4">
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1a3554" />
+          <CartesianGrid strokeDasharray="3 3" stroke={c.gridStroke} />
           <XAxis
             dataKey="monthLabel"
-            tick={{ fill: '#64748b', fontSize: 12 }}
+            tick={{ fill: c.tickFill, fontSize: 12 }}
             tickLine={false}
           />
           <YAxis
             tickFormatter={(v) => formatMinutes(v)}
-            tick={{ fill: '#64748b', fontSize: 12 }}
+            tick={{ fill: c.tickFill, fontSize: 12 }}
             tickLine={false}
             axisLine={false}
           />
           <Tooltip
-            contentStyle={{ backgroundColor: '#0c1a2e', border: '1px solid #1a3554', borderRadius: 8, color: '#e2e8f0' }}
-            labelStyle={{ color: '#e2e8f0' }}
+            contentStyle={{ backgroundColor: c.tooltipBg, border: c.tooltipBorder, borderRadius: 8, color: c.tooltipText }}
+            labelStyle={{ color: c.tooltipText }}
             formatter={(value: number) => [formatMinutes(value), '平均睡眠時間']}
           />
           <Line
